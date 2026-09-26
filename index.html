@@ -291,6 +291,7 @@ const OPTIONS = [
   { e: "🎢", t: "Adrenalinový zážitek", a: "adrenalinový zážitek" },
   { e: "🐶", t: "Procházka s Ashley",   a: "procházku s Ashley" },
 ];
+const EMAIL = "minsck@seznam.cz";      // sem přijde její odpověď (FormSubmit.co)
 const NO_GROW = 5, NO_TOTAL = 10;   // 5× se zvětší Ano, pak 5× Ne uhne a zmenšuje se, pak zmizí
 
 const $ = id => document.getElementById(id);
@@ -460,7 +461,25 @@ $("send").addEventListener("click", () => {
   if (note) li("💌", `„${note}“`, "note-text");
   show("s4");
   burst(40);
+  sendMail({
+    _subject: "💖 Odpověď na rande",
+    _template: "table",
+    _captcha: "false",
+    "Co": [...selected].map(o => o.t).join(", "),
+    "Kdy": fmtDate(picked),
+    "Poznámka": note || "—",
+  });
 });
+
+/* Odeslání e-mailem; při chybě jeden pokus znovu */
+function sendMail(data, retry = true) {
+  fetch(`https://formsubmit.co/ajax/${EMAIL}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(data),
+  }).then(r => { if (!r.ok) throw r; })
+    .catch(() => { if (retry) setTimeout(() => sendMail(data, false), 3000); });
+}
 </script>
 </body>
 </html>
